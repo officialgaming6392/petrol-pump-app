@@ -233,12 +233,27 @@ function verifyAdminPin(){
 
   
 function updateAdminUI(){
-  const p=document.getElementById('adminPill');
-  if(isAdmin){p.textContent='Admin Mode';p.classList.add('active');document.body.classList.add('admin-mode');}
-  else{p.textContent='Staff Mode';p.classList.remove('active');document.body.classList.remove('admin-mode');}
+  const els=document.querySelectorAll('.admin-gate');
+  els.forEach(el=>el.style.display=isAdmin?'flex':'none');
+  const pill=document.getElementById('adminPill');
+  const setBtn=document.getElementById('settingsBtn');
+  if(isAdmin){
+    pill.textContent='Admin Active';
+    pill.style.background='rgba(46, 204, 138, 0.15)';
+    pill.style.color='var(--success)';
+    pill.style.borderColor='rgba(46, 204, 138, 0.3)';
+    if(setBtn) setBtn.style.display = 'flex';
+  } else {
+    pill.textContent='Staff Mode';
+    pill.style.background='rgba(245, 197, 66, 0.15)';
+    pill.style.color='var(--accent)';
+    pill.style.borderColor='rgba(245, 197, 66, 0.3)';
+    if(setBtn) setBtn.style.display = 'none';
+  }
   if(currentView==='udhaar')renderCustomerList();
   if(currentView==='employees')renderEmployees();
 }
+
 
 function showNotifs(){openModal('modal-notifs');db.notifications.forEach(n=>n.read=true);saveDB();document.getElementById('notifDot').style.display='none';}
 function renderNotifs(){
@@ -1479,6 +1494,40 @@ async function saveAttendance(){
 
 
 
+
+// --- SETTINGS LOGIC ---
+function openSettings() {
+  if(!isAdmin) { showToast('Admin access required.', 'error'); return; }
+  document.getElementById('setPetrolRate').value = db.settings.petrolRate || '';
+  document.getElementById('setDieselRate').value = db.settings.dieselRate || '';
+  document.getElementById('setPetrolCap').value = db.inventory.petrol.capacity || '';
+  document.getElementById('setDieselCap').value = db.inventory.diesel.capacity || '';
+  openModal('modal-settings');
+}
+
+async function saveSettings() {
+  const pRate = parseFloat(document.getElementById('setPetrolRate').value);
+  const dRate = parseFloat(document.getElementById('setDieselRate').value);
+  const pCap = parseFloat(document.getElementById('setPetrolCap').value);
+  const dCap = parseFloat(document.getElementById('setDieselCap').value);
+  
+  if(!pRate || !dRate || !pCap || !dCap) {
+    showToast('Please fill in all fields correctly.', 'error');
+    return;
+  }
+  
+  db.settings.petrolRate = pRate;
+  db.settings.dieselRate = dRate;
+  db.inventory.petrol.capacity = pCap;
+  db.inventory.diesel.capacity = dCap;
+  
+  await saveDB();
+  closeModal('modal-settings');
+  showToast('Settings saved successfully!', 'success');
+  
+  if(currentView === 'dashboard') renderDashboard();
+  if(currentView === 'inventory') renderInventory();
+}
 
 db={}; loadDB();
 
