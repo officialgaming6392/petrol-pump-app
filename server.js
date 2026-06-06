@@ -75,23 +75,8 @@ app.get('/api/db', async (req, res) => {
     let db = {};
     
     if (docs.length === 0) {
-      // MIGRATION: If DB is empty, try to import from local JSON files
-      const DATA_DIR = path.join(__dirname, 'data');
-      if (fs.existsSync(DATA_DIR)) {
-        console.log('Migrating local JSON files to MongoDB...');
-        for (const key of FILE_NAMES) {
-          const filePath = path.join(DATA_DIR, `${key}.json`);
-          if (fs.existsSync(filePath)) {
-            try {
-              const fileData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-              await AppData.findOneAndUpdate({ key }, { $set: { data: fileData } }, { upsert: true });
-              db[key] = fileData;
-            } catch(e) {
-              console.error('Migration error for ' + key, e);
-            }
-          }
-        }
-      }
+      // Return empty database instead of migrating from local JSON files
+      // This prevents the old data on GitHub from continuously restoring itself.
     } else {
       docs.forEach(doc => {
         db[doc.key] = doc.data;
