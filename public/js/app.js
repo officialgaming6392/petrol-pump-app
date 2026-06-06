@@ -1495,6 +1495,12 @@ function openSettings() {
   document.getElementById('setDieselRate').value = db.settings.dieselRate || '';
   document.getElementById('setPetrolCap').value = db.inventory.petrol.capacity || '';
   document.getElementById('setDieselCap').value = db.inventory.diesel.capacity || '';
+  
+  const pinInput = document.getElementById('setAdminPin');
+  if (pinInput) pinInput.value = '';
+  const broadcastInput = document.getElementById('broadcastMsg');
+  if (broadcastInput) broadcastInput.value = '';
+  
   openModal('modal-settings');
 }
 
@@ -1514,12 +1520,45 @@ async function saveSettings() {
   db.inventory.petrol.capacity = pCap;
   db.inventory.diesel.capacity = dCap;
   
+  const pinInput = document.getElementById('setAdminPin');
+  if (pinInput && pinInput.value.trim().length > 0) {
+    db.settings.adminPIN = pinInput.value.trim();
+  }
+  
   await saveDB();
   closeModal('modal-settings');
   showToast('Settings saved successfully!', 'success');
   
   if(currentView === 'dashboard') renderDashboard();
   if(currentView === 'inventory') renderInventory();
+}
+
+async function sendBroadcast() {
+  const msgInput = document.getElementById('broadcastMsg');
+  const msg = msgInput ? msgInput.value.trim() : '';
+  if (!msg) {
+    showToast('Please enter a message to broadcast.', 'error');
+    return;
+  }
+  
+  if (!db.notifications) db.notifications = [];
+  db.notifications.unshift({
+    id: 'notif_' + Date.now(),
+    title: 'Admin Broadcast',
+    message: msg,
+    time: new Date().toISOString(),
+    read: false
+  });
+  
+  // Keep only the latest 30 notifications
+  if (db.notifications.length > 30) db.notifications.pop();
+  
+  await saveDB();
+  msgInput.value = '';
+  showToast('Push notification sent to all staff!', 'success');
+  
+  // Trigger update on current device too
+  updateNotifBadge();
 }
 
 db={}; loadDB();
