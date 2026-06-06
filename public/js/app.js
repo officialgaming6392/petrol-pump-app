@@ -1305,8 +1305,10 @@ async function downloadPDF(title, subtitle, tableHeaders, tableBody, totalStats,
   const fileName = `${title.replace(/ /g, '_')}_${new Date().getTime()}.pdf`;
   
   try {
-    const blob = doc.output('blob');
+    const arrayBuffer = doc.output('arraybuffer');
+    const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
     const file = new File([blob], fileName, { type: 'application/pdf' });
+    
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       await navigator.share({
         files: [file],
