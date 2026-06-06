@@ -40,8 +40,8 @@ const defaultDB={
 settings:{petrolRate:102.83,dieselRate:96.18,lowStockThreshold:2000,adminPIN:'1234'},
 // Machine meter readings: last closing reading per machine per fuel type
 machineReadings:{
-  '1':{petrol:1254.550,diesel:9880.320},
-  '2':{petrol:8796.120,diesel:6594.780}
+  '1':{petrol:125430.550,diesel:98210.320},
+  '2':{petrol:87654.120,diesel:65432.780}
 },
 inventory:{
   petrol:{openingStock:12500,receivedStock:10000,soldStock:4850,closingStock:17650,capacity:16000},
@@ -68,8 +68,11 @@ customers:[
   ]}
 ],
 shifts:[
-  {id:'shift_01',date:'2026-06-01',shiftType:'Day',machine:'1',attendantId:'emp_01',attendantName:'Rahul Kumar',openPetrolMeter:1249.550,closePetrolMeter:1280.550,openDieselMeter:2638.320,closeDieselMeter:3210.320,petrolSoldQty:450,petrolSoldAmount:43425,dieselSoldQty:600,dieselSoldAmount:53520,totalFuelSale:96945,onlineCollection:45000,expectedCash:51945,cashCollected:51695,cashDifference:-250,udhaarGiven:4200,udhaarRecovered:0,netCollection:47495,status:'Closed'},
-  {id:'shift_02',date:'2026-06-02',shiftType:'Day',machine:'2',attendantId:'emp_02',attendantName:'Amit Singh',openPetrolMeter:874.120,closePetrolMeter:964.120,openDieselMeter:672.780,closeDieselMeter:832.780,petrolSoldQty:500,petrolSoldAmount:48250,dieselSoldQty:700,dieselSoldAmount:62440,totalFuelSale:110690,onlineCollection:60000,expectedCash:50690,cashCollected:50690,cashDifference:0,udhaarGiven:5000,udhaarRecovered:0,netCollection:45690,status:'Closed'},
+  {id:'shift_01',date:'2026-06-01',shiftType:'Day',machine:'1',attendantId:'emp_01',attendantName:'Rahul Kumar',openPetrolMeter:124980.550,closePetrolMeter:125430.550,openDieselMeter:97610.320,closeDieselMeter:98210.320,petrolSoldQty:450,petrolSoldAmount:43425,dieselSoldQty:600,dieselSoldAmount:53520,totalFuelSale:96945,onlineCollection:45000,expectedCash:51945,cashCollected:51695,cashDifference:-250,udhaarGiven:4200,udhaarRecovered:0,netCollection:47495,status:'Closed'},
+  {id:'shift_02',date:'2026-06-02',shiftType:'Day',machine:'2',attendantId:'emp_02',attendantName:'Amit Singh',openPetrolMeter:87154.120,closePetrolMeter:87654.120,openDieselMeter:64732.780,closeDieselMeter:65432.780,petrolSoldQty:500,petrolSoldAmount:48250,dieselSoldQty:700,dieselSoldAmount:62440,totalFuelSale:110690,onlineCollection:60000,expectedCash:50690,cashCollected:50690,cashDifference:0,udhaarGiven:5000,udhaarRecovered:0,netCollection:45690,status:'Closed'},
+  {id:'shift_03',date:'2026-06-03',shiftType:'Day',machine:'1',attendantId:'emp_03',attendantName:'Vikram Patel',openPetrolMeter:125430.550,closePetrolMeter:125830.550,openDieselMeter:98210.320,closeDieselMeter:98760.320,petrolSoldQty:400,petrolSoldAmount:38600,dieselSoldQty:550,dieselSoldAmount:49060,totalFuelSale:87660,onlineCollection:40000,expectedCash:47660,cashCollected:47160,cashDifference:-500,udhaarGiven:4900,udhaarRecovered:0,netCollection:42260,status:'Closed'},
+  {id:'shift_04',date:'2026-06-04',shiftType:'Day',machine:'1',attendantId:'emp_01',attendantName:'Rahul Kumar',openPetrolMeter:125830.550,closePetrolMeter:126310.550,openDieselMeter:98760.320,closeDieselMeter:99410.320,petrolSoldQty:480,petrolSoldAmount:46320,dieselSoldQty:650,dieselSoldAmount:57980,totalFuelSale:104300,onlineCollection:55000,expectedCash:49300,cashCollected:49300,cashDifference:0,udhaarGiven:0,udhaarRecovered:1000,netCollection:50300,status:'Closed'},
+  {id:'shift_05',date:'2026-06-05',shiftType:'Day',machine:'2',attendantId:'emp_02',attendantName:'Amit Singh',openPetrolMeter:87654.120,closePetrolMeter:88174.120,openDieselMeter:65432.780,closeDieselMeter:66232.780,petrolSoldQty:520,petrolSoldAmount:50180,dieselSoldQty:800,dieselSoldAmount:71360,totalFuelSale:121540,onlineCollection:70000,expectedCash:51540,cashCollected:51540,cashDifference:0,udhaarGiven:0,udhaarRecovered:1000,netCollection:52540,status:'Closed'}
 ],
 notifications:[
   {id:'n1',dateTime:'2026-06-05T19:00:00',type:'info',message:'Daily shift closure completed by Amit Singh.',read:false},
@@ -1284,7 +1287,24 @@ async function downloadPDF(title, subtitle, tableHeaders, tableBody, totalStats,
     doc.text("Powered by Antigravity", 165, 290);
   }
   
-  doc.save(`${title.replace(/ /g, '_')}_${new Date().getTime()}.pdf`);
+  const fileName = `${title.replace(/ /g, '_')}_${new Date().getTime()}.pdf`;
+  
+  try {
+    const blob = doc.output('blob');
+    const file = new File([blob], fileName, { type: 'application/pdf' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: title,
+        text: 'Please find the attached report.'
+      });
+      return;
+    }
+  } catch (err) {
+    console.error('Sharing failed', err);
+  }
+  
+  doc.save(fileName);
 }
 
 async function shareOnWhatsApp(){
@@ -1318,7 +1338,7 @@ async function shareOnWhatsApp(){
   if(c.photo) avatarB64 = await getBase64ImageFromUrl(c.photo);
   
   await downloadPDF(`${c.name}_Statement`, "Customer Ledger & Statement", headers, body, stats, avatarB64);
-  showToast('PDF Statement Downloaded!', 'success');
+  showToast('PDF Generated and ready to share!', 'success');
 }
 
 async function shareReport(){
@@ -1365,7 +1385,7 @@ async function shareReport(){
     ];
     
     await downloadPDF(`Daily_Report_${dateVal}`, `Daily Shift Closure Report`, headers, body, stats);
-    showToast('Daily PDF Report Downloaded!', 'success');
+    showToast('Daily PDF Report Generated!', 'success');
     
   } else if(type==='monthly') {
     const dStr = document.getElementById('rptDate').value;
@@ -1389,7 +1409,7 @@ async function shareReport(){
       `Total Udhaar: Rs. ${Number(udhaar||0).toLocaleString('en-IN')}`
     ];
     await downloadPDF(`Monthly_Report_${monthPrefix}`, `Monthly Summary Report`, null, null, stats);
-    showToast('Monthly PDF Report Downloaded!', 'success');
+    showToast('Monthly PDF Report Generated!', 'success');
     
   } else if(type==='inventory') {
     const stats = [
@@ -1402,7 +1422,7 @@ async function shareReport(){
       `Rate: Rs. ${db.settings.dieselRate}`
     ];
     await downloadPDF(`Inventory_Report`, `Current Inventory Status`, null, null, stats);
-    showToast('Inventory PDF Report Downloaded!', 'success');
+    showToast('Inventory PDF Report Generated!', 'success');
     
   } else if(type==='udhaar') {
     const customers = db.customers.filter(c => c.balance > 0).sort((a,b)=>b.balance - a.balance);
@@ -1431,7 +1451,7 @@ async function shareReport(){
     ];
     
     await downloadPDF(`Overall_Debtor_Report`, `Overall Debtor Report`, headers, body, stats);
-    showToast('Debtor PDF Report Downloaded!', 'success');
+    showToast('Debtor PDF Report Generated!', 'success');
   }
 }
 
