@@ -40,8 +40,8 @@ const defaultDB={
 settings:{petrolRate:102.83,dieselRate:96.18,lowStockThreshold:2000,adminPIN:'1234'},
 // Machine meter readings: last closing reading per machine per fuel type
 machineReadings:{
-  '1':{petrol:125430.550,diesel:98210.320},
-  '2':{petrol:87654.120,diesel:65432.780}
+  '1':{petrol:1254.550,diesel:9880.320},
+  '2':{petrol:8796.120,diesel:6594.780}
 },
 inventory:{
   petrol:{openingStock:12500,receivedStock:10000,soldStock:4850,closingStock:17650,capacity:16000},
