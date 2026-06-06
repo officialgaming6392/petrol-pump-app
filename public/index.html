@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Darshan Filling Station</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+</head>
+<body>
+<link rel="stylesheet" href="/css/style.css">
+
+<h2 class="sr-only">Darshan Filling Station Management App</h2>
+<div class="app" id="app">
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="brand-icon">⛽</div>
+    <div>
+      <div class="brand-title">Darshan Filling Station</div>
+      <div class="brand-sub">Hadrukh, Jalaun· Management System</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="admin-pill" id="adminPill" onclick="toggleAdmin()">Staff Mode</div>
+    <div class="notif-btn" onclick="showNotifs()">
+      <i class="ti ti-bell" aria-hidden="true"></i>
+      <div class="notif-dot" id="notifDot"></div>
+    </div>
+  </div>
+</div>
+
+<div class="content" id="mainContent">
+
+  <!-- DASHBOARD -->
+  <div class="view active" id="v-dashboard">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px">
+      <div>
+        <div style="font-size:20px;font-weight:800;letter-spacing:-.4px">Today's Overview</div>
+        <div style="font-size:11px;color:var(--text2)" id="dashDate">—</div>
+      </div>
+      <span class="badge ok" id="dashStatus">Balanced</span>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="lbl"><i class="ti ti-gas-station" aria-hidden="true"></i>Fuel Sales</div>
+        <div class="val accent-val" id="kpiSales">₹0</div>
+        <div class="sub info" id="kpiLiters">0 L sold</div>
+      </div>
+      <div class="kpi">
+        <div class="lbl"><i class="ti ti-device-mobile" aria-hidden="true"></i>Online Payments</div>
+        <div class="val blue-val" id="kpiOnline">₹0</div>
+        <div class="sub" id="kpiOnlinePct">0% of sales</div>
+      </div>
+      <div class="kpi">
+        <div class="lbl"><i class="ti ti-wallet" aria-hidden="true"></i>Cash Collection</div>
+        <div class="val green-val" id="kpiCash">₹0</div>
+        <div class="sub ok" id="kpiCashStatus">Balanced</div>
+      </div>
+      <div class="kpi">
+        <div class="lbl"><i class="ti ti-user-off" aria-hidden="true"></i>Udhaar Debt</div>
+        <div class="val red-val" id="kpiUdhaar">₹0</div>
+        <div class="sub warn" id="kpiUdhaarCount">0 accounts</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">Fuel Tank Levels</div><button class="btn btn-outline" onclick="switchView('inventory')" style="padding:5px 10px;font-size:11px"><i class="ti ti-arrow-right" aria-hidden="true"></i>View</button></div>
+      <div class="gauge-row">
+        <div class="gauge-item">
+          <div class="gauge-label">Petrol</div>
+          <div class="gauge-bar-wrap"><div class="gauge-bar petrol" id="gaugePetrol" style="width:70%"></div></div>
+          <div class="gauge-val accent-val" id="gaugePetrolVal">—</div>
+        </div>
+        <div class="gauge-item">
+          <div class="gauge-label">Diesel</div>
+          <div class="gauge-bar-wrap"><div class="gauge-bar diesel" id="gaugeDiesel" style="width:66%"></div></div>
+          <div class="gauge-val blue-val" id="gaugeDieselVal">—</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">Sales Trend (Last 5 Days)</div></div>
+      <div class="chart-bars" id="salesChart"></div>
+      <div class="chart-xlabels" id="salesLabels"></div>
+      <div style="display:flex;gap:16px;margin-top:10px">
+        <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3)"><div style="width:10px;height:10px;border-radius:2px;background:var(--accent)"></div>Petrol</div>
+        <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text3)"><div style="width:10px;height:10px;border-radius:2px;background:var(--accent2)"></div>Diesel</div>
+      </div>
+    </div>
+    <div style="font-size:13px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">Quick Actions</div>
+    <div class="qa-grid">
+      <div class="qa-btn" onclick="openModal('modal-shift')"><i class="ti ti-clipboard-check" style="color:var(--accent)" aria-hidden="true"></i><div class="qa-label">Log Shift Closure</div><div class="qa-sub">Record daily collection</div></div>
+      <div class="qa-btn" onclick="openUdhaarModal()"><i class="ti ti-book" style="color:var(--accent2)" aria-hidden="true"></i><div class="qa-label">Record Udhaar</div><div class="qa-sub">Credit / Recovery</div></div>
+      <div class="qa-btn" onclick="openModal('modal-attend')"><i class="ti ti-user-check" style="color:#B07FFF" aria-hidden="true"></i><div class="qa-label">Attendance</div><div class="qa-sub">Mark today's roll</div></div>
+      <div class="qa-btn admin-gate" onclick="openModal('modal-fuel')" style="align-items:flex-start"><i class="ti ti-truck" style="color:var(--accent3)" aria-hidden="true"></i><div class="qa-label">Add Delivery</div><div class="qa-sub">Replenish fuel stock</div></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">Recent Alerts</div></div>
+      <div id="alertsList"></div>
+    </div>
+  </div>
+
+  <!-- SHIFTS VIEW -->
+  <div class="view" id="v-shifts">
+    <div id="shifts-list-pane">
+      <div class="sec-head">
+        <div><div class="sec-title">Shift <span>Records</span></div><div class="sec-sub">Tap a record to see full details</div></div>
+        <button class="btn btn-primary admin-gate" onclick="openModal('modal-shift')" style="align-items:center"><i class="ti ti-plus" aria-hidden="true"></i>New</button>
+      </div>
+      <div class="card" id="shiftsList"></div>
+    </div>
+    <div id="shifts-detail-pane" style="display:none">
+      <div class="back-btn" onclick="closeShiftDetail()"><i class="ti ti-arrow-left" aria-hidden="true"></i>Back to Records</div>
+      <div id="shiftDetailContent"></div>
+    </div>
+  </div>
+
+  <!-- UDHAAR VIEW — LIST -->
+  <div class="view" id="v-udhaar">
+    <div class="tabs">
+      <div class="tab active" id="tab-list" onclick="showUdhaarTab('list')">Customer Balances</div>
+      <div class="tab" id="tab-add-customer" onclick="adminTabGuard('add-customer')">+ Add Customer</div>
+      <div class="tab" id="tab-record-tx" onclick="adminTabGuard('record-tx')">Record Transaction</div>
+    </div>
+
+    <!-- TAB: Customer list -->
+    <div id="utab-list">
+      <div id="adminClearancePanel" style="display:none" class="card">
+        <div class="card-head">
+          <div class="card-title" style="color:var(--accent)"><i class="ti ti-lock" style="font-size:14px" aria-hidden="true"></i> Pending Clearances</div>
+          <span class="badge pending" id="pendingCount">0 pending</span>
+        </div>
+        <div id="pendingList"></div>
+      </div>
+      <div class="search-bar">
+        <i class="ti ti-search" aria-hidden="true"></i>
+        <input type="text" placeholder="Search name or vehicle..." id="custSearch" oninput="renderCustomerList()">
+      </div>
+      <div id="customersList"></div>
+    </div>
+
+    <!-- TAB: Add Customer (Admin only) -->
+    <div id="utab-add-customer" style="display:none">
+      <div class="card">
+        <div style="margin-bottom:14px">
+          <div style="font-size:15px;font-weight:800;margin-bottom:4px">Register New Customer</div>
+          <div style="font-size:12px;color:var(--text2)">Add a new account to the udhaar ledger</div>
+        </div>
+        <!-- Photo upload -->
+        <div class="form-group" style="display:flex;flex-direction:column;align-items:center;gap:8px">
+          <div id="nc-avatar-preview" onclick="document.getElementById('nc-photo').click()" style="width:72px;height:72px;border-radius:50%;background:rgba(245,197,66,0.15);border:2px dashed rgba(245,197,66,0.4);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;position:relative">
+            <i class="ti ti-camera" style="font-size:22px;color:var(--accent)" aria-hidden="true"></i>
+          </div>
+          <span style="font-size:11px;color:var(--text3)">Tap to add photo</span>
+          <input type="file" id="nc-photo" accept="image/*" style="display:none" onchange="previewCustomerPhoto()">
+        </div>
+        <div class="form-group">
+          <label>Full Name / Business Name</label>
+          <input type="text" class="form-control" id="nc-name" placeholder="e.g. Suresh Kumar (Sharma Transports)">
+        </div>
+        <div class="form-group">
+          <label>Mobile Number</label>
+          <input type="tel" class="form-control" id="nc-mobile" placeholder="10-digit mobile" maxlength="10">
+        </div>
+        <div class="form-group">
+          <label>Vehicle Number</label>
+          <input type="text" class="form-control" id="nc-vehicle" placeholder="e.g. UP80-XY-1234" style="text-transform:uppercase">
+        </div>
+        <div class="form-group">
+          <label>Opening Balance (₹) <span style="color:var(--text3);font-size:10px;text-transform:none;font-weight:400">— enter 0 if new account</span></label>
+          <input type="number" class="form-control" id="nc-opening" placeholder="0" value="0">
+        </div>
+        <button class="btn btn-primary full-btn" onclick="saveNewCustomer()"><i class="ti ti-user-plus" aria-hidden="true"></i>Register Customer</button>
+      </div>
+    </div>
+
+    <!-- TAB: Record Transaction (Admin only) -->
+    <div id="utab-record-tx" style="display:none">
+      <div class="card">
+        <div style="margin-bottom:14px">
+          <div style="font-size:15px;font-weight:800;margin-bottom:4px">Log Credit / Recovery</div>
+          <div style="font-size:12px;color:var(--text2)">Record udhaar given or payment received</div>
+        </div>
+        <div class="form-group">
+          <label>Customer</label>
+          <select class="form-control" id="uCustomer"></select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Type</label>
+            <select class="form-control" id="uType" onchange="toggleUdhaarFields()">
+              <option value="credit">Udhaar (Credit)</option>
+              <option value="recovery">Recovery (Payment)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Amount (₹)</label>
+            <input type="number" class="form-control" id="uAmount" placeholder="₹0">
+          </div>
+        </div>
+        <div id="uCreditFields">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Fuel Type</label>
+              <select class="form-control" id="uFuel"><option value="Diesel">Diesel</option><option value="Petrol">Petrol</option><option value="N/A">N/A</option></select>
+            </div>
+            <div class="form-group">
+              <label>Liters</label>
+              <input type="number" class="form-control" id="uLiters" placeholder="0.0" step="0.1">
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Attendant on Shift</label>
+          <select class="form-control" id="uAttendant"></select>
+        </div>
+        <button class="btn btn-primary full-btn" onclick="saveUdhaar()"><i class="ti ti-device-floppy" aria-hidden="true"></i>Record Transaction</button>
+      </div>
+    </div>
+
+    <!-- CUSTOMER LEDGER DETAIL -->
+    <div id="utab-ledger" style="display:none">
+      <div class="back-btn" onclick="showUdhaarTab('list')">
+        <i class="ti ti-arrow-left" aria-hidden="true"></i>Back to Customers
+      </div>
+      <div class="ledger-header">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+          <div class="cust-avatar-big" id="ledgerAvatarWrap" onclick="isAdmin&&document.getElementById('ledger-photo-input').click()">
+            <span id="ledgerAvatar">R</span>
+            <div class="avatar-edit-overlay"><i class="ti ti-camera" style="color:#fff;font-size:14px" aria-hidden="true"></i></div>
+          </div>
+          <input type="file" id="ledger-photo-input" accept="image/*" style="display:none" onchange="updateCustomerPhoto()">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:16px;font-weight:800;margin-bottom:2px" id="ledgerName">—</div>
+            <div style="font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace" id="ledgerVehicle">—</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px" id="ledgerMobile">—</div>
+          </div>
+          <button class="btn btn-outline" onclick="shareOnWhatsApp()" style="padding:7px 10px;font-size:11px;flex-shrink:0"><i class="ti ti-brand-whatsapp" aria-hidden="true"></i>Share</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+          <div style="background:var(--surface2);border-radius:var(--r);padding:10px;text-align:center">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px">Total Credit</div>
+            <div class="red-val" style="font-size:13px;font-weight:800;font-family:'JetBrains Mono',monospace" id="ledgerTotalCredit">₹0</div>
+          </div>
+          <div style="background:var(--surface2);border-radius:var(--r);padding:10px;text-align:center">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px">Recovered</div>
+            <div class="green-val" style="font-size:13px;font-weight:800;font-family:'JetBrains Mono',monospace" id="ledgerTotalRecovered">₹0</div>
+          </div>
+          <div style="background:rgba(240,79,89,0.08);border:1px solid rgba(240,79,89,0.2);border-radius:var(--r);padding:10px;text-align:center">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:3px">Outstanding</div>
+            <div class="red-val" style="font-size:14px;font-weight:800;font-family:'JetBrains Mono',monospace" id="ledgerBalance">₹0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">Full Transaction History</div>
+          <span style="font-size:11px;color:var(--text2)" id="ledgerTxCount">0 entries</span>
+        </div>
+        <div id="ledgerTransactions"></div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-bottom:16px" id="ledgerActions">
+        <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="adminActionGuard(openUdhaarModalForCustomer)"><i class="ti ti-plus" aria-hidden="true"></i>Add Transaction</button>
+        <button class="btn btn-outline" style="flex:1;justify-content:center" onclick="adminActionGuard(deleteCustomerConfirm)"><i class="ti ti-trash" aria-hidden="true"></i>Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- INVENTORY VIEW -->
+  <div class="view" id="v-inventory">
+    <div class="sec-head">
+      <div><div class="sec-title">Fuel <span>Inventory</span></div><div class="sec-sub">Tank levels & stock logs</div></div>
+      <button class="btn btn-primary admin-gate" onclick="openModal('modal-fuel')" style="align-items:center"><i class="ti ti-plus" aria-hidden="true"></i>Delivery</button>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi" style="border-color:rgba(245,197,66,.2)">
+        <div class="lbl" style="color:var(--accent)">Petrol (MS)</div>
+        <div class="val accent-val" id="invPetrolVal">—</div>
+        <div class="sub" id="invPetrolPct">—</div>
+      </div>
+      <div class="kpi" style="border-color:rgba(61,142,240,.2)">
+        <div class="lbl" style="color:var(--accent2)">Diesel (HSD)</div>
+        <div class="val blue-val" id="invDieselVal">—</div>
+        <div class="sub" id="invDieselPct">—</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">Stock Summary</div></div>
+      <div id="invSummary"></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="card-title">Stock Activity Log</div></div>
+      <div id="invHistory"></div>
+    </div>
+  </div>
+
+  <!-- EMPLOYEES VIEW -->
+  <div class="view" id="v-employees">
+    <div id="emp-list-pane">
+      <div class="sec-head">
+        <div><div class="sec-title">Staff <span>Members</span></div><div class="sec-sub">Tap a member to see full profile</div></div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-outline" onclick="openModal('modal-attend')"><i class="ti ti-clipboard-check" aria-hidden="true"></i>Attend</button>
+          <button class="btn btn-primary admin-gate" onclick="openAddStaffModal()" style="align-items:center"><i class="ti ti-plus" aria-hidden="true"></i>Add</button>
+        </div>
+      </div>
+      <div id="employeesList"></div>
+    </div>
+    <div id="emp-detail-pane" style="display:none">
+      <div class="back-btn" onclick="closeStaffDetail()"><i class="ti ti-arrow-left" aria-hidden="true"></i>Back to Staff</div>
+      <div id="empDetailContent"></div>
+    </div>
+  </div>
+
+  <!-- REPORTS VIEW -->
+  <div class="view" id="v-reports">
+    <div class="sec-head">
+      <div><div class="sec-title">Reports <span>&amp; Export</span></div><div class="sec-sub">Summaries for owner</div></div>
+    </div>
+    <div class="card">
+      <div class="form-group">
+        <label>Report Type</label>
+        <select class="form-control" id="rptType" onchange="toggleRptDate()">
+          <option value="daily">Daily Sales & Collection</option>
+          <option value="monthly">Monthly Summary</option>
+          <option value="udhaar">Overall Debtor Report</option>
+          <option value="inventory">Inventory Status</option>
+        </select>
+      </div>
+      <div id="rptDateGroup" class="form-group">
+        <label>Select Date</label>
+        <input type="date" class="form-control" id="rptDate">
+      </div>
+      <div id="rptMonthGroup" class="form-group" style="display:none">
+        <label>Select Month</label>
+        <input type="month" class="form-control" id="rptMonth">
+      </div>
+      <button class="btn btn-primary full-btn" onclick="generateReport()"><i class="ti ti-chart-bar" aria-hidden="true"></i>Generate Report</button>
+    </div>
+    <div id="rptOutput" style="display:none" class="card">
+      <div class="card-head">
+        <div class="card-title" id="rptTitle">Report</div>
+        <button class="btn btn-outline" onclick="shareReport()" style="padding:6px 10px;font-size:11px"><i class="ti ti-brand-whatsapp" aria-hidden="true"></i>Share</button>
+      </div>
+      <div id="rptContent"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="fab" onclick="openModal('modal-shift')" title="Log Shift"><i class="ti ti-plus" aria-hidden="true"></i></div>
+
+<nav class="bottom-nav" aria-label="Main navigation">
+  <div class="nav-item active" onclick="switchView('dashboard')"><i class="ti ti-layout-dashboard" aria-hidden="true"></i><span>Home</span></div>
+  <div class="nav-item" onclick="switchView('shifts')"><i class="ti ti-calendar-check" aria-hidden="true"></i><span>Shifts</span></div>
+  <div class="nav-item" onclick="switchView('udhaar')"><i class="ti ti-book" aria-hidden="true"></i><span>Udhaar</span></div>
+  <div class="nav-item" onclick="switchView('inventory')"><i class="ti ti-building-factory-2" aria-hidden="true"></i><span>Stock</span></div>
+  <div class="nav-item" onclick="switchView('employees')"><i class="ti ti-users" aria-hidden="true"></i><span>Staff</span></div>
+  <div class="nav-item" onclick="switchView('reports')"><i class="ti ti-file-analytics" aria-hidden="true"></i><span>Reports</span></div>
+</nav>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
+
+<!-- CUSTOM CONFIRM DIALOG -->
+<div id="confirm-overlay">
+  <div id="confirm-box">
+    <div id="confirm-icon">⚠️</div>
+    <div id="confirm-title">Confirm</div>
+    <div id="confirm-msg"></div>
+    <div id="confirm-btns">
+      <button id="confirm-cancel" onclick="confirmResolve(false)">Cancel</button>
+      <button id="confirm-ok" onclick="confirmResolve(true)">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-bg" id="modal-shift">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">Record Shift Closure</div><div class="close-btn" onclick="closeModal('modal-shift')"><i class="ti ti-x" aria-hidden="true"></i></div></div>
+
+    <!-- Date & Shift -->
+    <div class="form-row">
+      <div class="form-group"><label>Date</label><input type="date" class="form-control" id="sDate" onchange="onShiftDateOrAttendantChange()"></div>
+      <div class="form-group"><label>Shift</label><select class="form-control" id="sType"><option value="Day">Day</option><option value="Night">Night</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="flex:1"><label>Attendant</label><select class="form-control" id="sAttendant" onchange="onShiftDateOrAttendantChange()"></select></div>
+      <div class="form-group" style="flex:0 0 110px"><label>Machine</label><select class="form-control" id="sMachine" onchange="onShiftDateOrAttendantChange()"><option value="1">Machine 1</option><option value="2">Machine 2</option></select></div>
+    </div>
+
+    <!-- Meter Readings -->
+    <div style="background:rgba(245,197,66,0.06);border:1px solid rgba(245,197,66,0.2);border-radius:var(--r);padding:12px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:flex;align-items:center;gap:5px"><i class="ti ti-gauge" aria-hidden="true"></i>Meter Readings</div>
+      <!-- Petrol meter -->
+      <div style="margin-bottom:10px">
+        <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">
+          <span>⛽ Petrol Meter</span>
+          <span style="font-size:10px;color:var(--text3)" id="sOpenPetrolDisplay">Opening: —</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div style="flex:1">
+            <label style="font-size:10px;color:var(--text3);display:block;margin-bottom:3px">Opening Reading</label>
+            <input type="number" class="form-control" id="sOpenPetrol" placeholder="0.000" step="0.001" style="font-family:'JetBrains Mono',monospace;font-size:13px;background:var(--surface2);opacity:0.7" readonly>
+          </div>
+          <div style="color:var(--text3);font-size:18px;padding-top:18px">→</div>
+          <div style="flex:1">
+            <label style="font-size:10px;color:var(--accent);display:block;margin-bottom:3px">Closing Reading <span style="color:var(--accent)">*</span></label>
+            <input type="number" class="form-control" id="sClosePetrol" placeholder="0.000" step="0.001" style="font-family:'JetBrains Mono',monospace;font-size:13px;border-color:rgba(245,197,66,0.3)" oninput="calcMeterQty()">
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:5px;padding:5px 8px;background:var(--surface2);border-radius:6px">
+          <span style="font-size:11px;color:var(--text2)">Petrol Sold:</span>
+          <span class="accent-val" style="font-size:12px;font-weight:800;font-family:'JetBrains Mono',monospace" id="sPetrolCalcDisplay">0.000 L → ₹0</span>
+        </div>
+      </div>
+      <!-- Diesel meter -->
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">
+          <span>🛢️ Diesel Meter</span>
+          <span style="font-size:10px;color:var(--text3)" id="sOpenDieselDisplay">Opening: —</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div style="flex:1">
+            <label style="font-size:10px;color:var(--text3);display:block;margin-bottom:3px">Opening Reading</label>
+            <input type="number" class="form-control" id="sOpenDiesel" placeholder="0.000" step="0.001" style="font-family:'JetBrains Mono',monospace;font-size:13px;background:var(--surface2);opacity:0.7" readonly>
+          </div>
+          <div style="color:var(--text3);font-size:18px;padding-top:18px">→</div>
+          <div style="flex:1">
+            <label style="font-size:10px;color:var(--accent2);display:block;margin-bottom:3px">Closing Reading <span style="color:var(--accent2)">*</span></label>
+            <input type="number" class="form-control" id="sCloseDiesel" placeholder="0.000" step="0.001" style="font-family:'JetBrains Mono',monospace;font-size:13px;border-color:rgba(61,142,240,0.3)" oninput="calcMeterQty()">
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:5px;padding:5px 8px;background:var(--surface2);border-radius:6px">
+          <span style="font-size:11px;color:var(--text2)">Diesel Sold:</span>
+          <span class="blue-val" style="font-size:12px;font-weight:800;font-family:'JetBrains Mono',monospace" id="sDieselCalcDisplay">0.000 L → ₹0</span>
+        </div>
+      </div>
+      <!-- Auto-calc hidden fields -->
+      <input type="hidden" id="sPetrolQty" value="0">
+      <input type="hidden" id="sDieselQty" value="0">
+    </div>
+
+    <div class="form-group"><label>Online / UPI (₹)</label><input type="number" class="form-control" id="sOnline" value="0" oninput="calcShift()"></div>
+
+    <!-- Auto-fetched Udhaar -->
+    <div id="sUdhaarPanel" style="background:rgba(240,79,89,0.07);border:1px solid rgba(240,79,89,0.2);border-radius:var(--r);padding:12px;margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-size:11px;font-weight:700;color:var(--danger);text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:5px"><i class="ti ti-book" aria-hidden="true"></i>Udhaar Given This Shift</div>
+        <span class="badge warn" id="sUdhaarCount">0 entries</span>
+      </div>
+      <div id="sUdhaarDetails" style="font-size:12px;color:var(--text3);margin-bottom:8px">No udhaar recorded for this attendant today.</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:12px;color:var(--text2)">Auto-fetched total:</span>
+        <span class="red-val" style="font-size:15px;font-weight:800;font-family:'JetBrains Mono',monospace" id="sUdhaarAutoAmt">₹0</span>
+      </div>
+      <input type="hidden" id="sUdhaar" value="0">
+    </div>
+
+    <!-- Other Expenses -->
+    <div style="background:rgba(61,142,240,0.07);border:1px solid rgba(61,142,240,0.2);border-radius:var(--r);padding:12px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:flex;align-items:center;gap:5px"><i class="ti ti-receipt" aria-hidden="true"></i>Other Expenses (Paid by Attendant)</div>
+      <div id="expensesList" style="margin-bottom:10px"></div>
+      <div style="display:flex;gap:8px">
+        <input type="text" class="form-control" id="expDesc" placeholder="e.g. Tea, Cold drink..." style="flex:2;font-size:12px">
+        <input type="number" class="form-control" id="expAmt" placeholder="₹" style="flex:1;font-size:12px">
+        <button class="btn btn-outline" onclick="addExpense()" style="padding:8px 10px;font-size:12px;flex-shrink:0"><i class="ti ti-plus" aria-hidden="true"></i></button>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:8px;border-top:1px solid rgba(61,142,240,0.2)">
+        <span style="font-size:12px;color:var(--text2)">Total Expenses:</span>
+        <span class="blue-val" style="font-size:14px;font-weight:800;font-family:'JetBrains Mono',monospace" id="lcExpenses">₹0</span>
+      </div>
+    </div>
+
+    <!-- Cash Collection with Note Counter -->
+    <div style="background:rgba(46,204,138,0.07);border:1px solid rgba(46,204,138,0.2);border-radius:var(--r);padding:12px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;color:var(--accent3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:flex;align-items:center;gap:5px"><i class="ti ti-calculator" aria-hidden="true"></i>Cash Collection Counter</div>
+      <div id="noteRows" style="display:flex;flex-direction:column;gap:7px;margin-bottom:10px"></div>
+      <div style="background:var(--surface2);border-radius:var(--r);padding:10px 14px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:12px;color:var(--text2)">Total Cash</span>
+        <span class="green-val" style="font-size:18px;font-weight:800;font-family:'JetBrains Mono',monospace" id="sCashDisplay">₹0</span>
+      </div>
+      <input type="hidden" id="sCash" value="0">
+    </div>
+
+    <!-- Live Calculation -->
+    <div class="live-calc">
+      <div class="calc-row"><span class="clabel">Total Fuel Sales</span><span class="cval" id="lcSales">₹0</span></div>
+      <div class="calc-row"><span class="clabel">Udhaar Given</span><span class="cval red-val" id="lcUdhaarAmt">₹0</span></div>
+      <div class="calc-row"><span class="clabel">Expenses Paid</span><span class="cval blue-val" id="lcExpAmt">₹0</span></div>
+      <div class="calc-row" style="padding-top:6px;border-top:1px solid var(--border);margin-top:4px"><span class="clabel">Online Payment</span><span class="cval blue-val" style="font-size:14px" id="lcOnlineAmt">₹0</span></div>
+      <div class="calc-row"><span class="clabel">Cash Collection</span><span class="cval green-val" style="font-size:14px" id="lcNet">₹0</span></div>
+      <div class="calc-row" style="padding-top:6px;border-top:1px solid var(--border);margin-top:4px"><span class="clabel" style="font-weight:800;color:var(--text)">Short / Excess</span><span class="cval" id="lcDiff" style="font-size:15px;color:var(--accent3)">₹0</span></div>
+    </div>
+    <button class="btn btn-primary full-btn" onclick="saveShift()"><i class="ti ti-device-floppy" aria-hidden="true"></i>Save Shift Entry</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-fuel">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">Receive Fuel Delivery</div><div class="close-btn" onclick="closeModal('modal-fuel')"><i class="ti ti-x" aria-hidden="true"></i></div></div>
+    <div class="form-group"><label>Fuel Type</label><select class="form-control" id="fFuelType"><option value="petrol">Petrol (MS)</option><option value="diesel">Diesel (HSD)</option></select></div>
+    <div class="form-group"><label>Quantity (Liters)</label><input type="number" class="form-control" id="fQty" placeholder="e.g. 5000"></div>
+    <button class="btn btn-primary full-btn" onclick="saveFuelDelivery()"><i class="ti ti-truck" aria-hidden="true"></i>Add to Stock</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-attend">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">Attendance Sheet</div><div class="close-btn" onclick="closeModal('modal-attend')"><i class="ti ti-x" aria-hidden="true"></i></div></div>
+    <div class="form-group"><label>Date</label><input type="date" class="form-control" id="attDate"></div>
+    <div id="attList" style="margin-bottom:16px"></div>
+    <button class="btn btn-primary full-btn" onclick="saveAttendance()"><i class="ti ti-device-floppy" aria-hidden="true"></i>Save Attendance</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-add-staff">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">Add New Staff Member</div><div class="close-btn" onclick="closeModal('modal-add-staff')"><i class="ti ti-x" aria-hidden="true"></i></div></div>
+    <!-- Photo -->
+    <div class="form-group" style="display:flex;flex-direction:column;align-items:center;gap:8px">
+      <div id="ns-avatar-preview" onclick="document.getElementById('ns-photo').click()" style="width:80px;height:80px;border-radius:50%;background:rgba(61,142,240,0.15);border:2px dashed rgba(61,142,240,0.4);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden">
+        <i class="ti ti-camera" style="font-size:24px;color:var(--accent2)" aria-hidden="true"></i>
+      </div>
+      <span style="font-size:11px;color:var(--text3)">Tap to add photo</span>
+      <input type="file" id="ns-photo" accept="image/*" style="display:none" onchange="previewStaffPhoto()">
+    </div>
+    <div class="form-group"><label>Full Name</label><input type="text" class="form-control" id="ns-name" placeholder="e.g. Rohit Sharma"></div>
+    <div class="form-group"><label>Mobile</label><input type="tel" class="form-control" id="ns-mobile" placeholder="10-digit mobile" maxlength="10"></div>
+    <div class="form-group"><label>Monthly Salary (₹)</label><input type="number" class="form-control" id="ns-salary" placeholder="15000"></div>
+    <div class="form-group"><label>Joining Date</label><input type="date" class="form-control" id="ns-joining"></div>
+    <button class="btn btn-primary full-btn" onclick="saveNewStaff()"><i class="ti ti-user-plus" aria-hidden="true"></i>Add Staff Member</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-notifs">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">Notifications</div><div class="close-btn" onclick="closeModal('modal-notifs')"><i class="ti ti-x" aria-hidden="true"></i></div></div>
+    <div id="notifsList"></div>
+  </div>
+</div>
+
+<!-- ADVANCE PAYMENT MODAL -->
+<div class="modal-bg" id="modal-advance">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title" id="advanceModalTitle">Staff Advance / Payment</div><div class="close-btn" onclick="closeModal('modal-advance')"><i class="ti ti-x" aria-hidden="true"></i></div></div>
+    <input type="hidden" id="advEmpId">
+    <div class="form-group">
+      <label>Transaction Type</label>
+      <div style="display:flex;gap:8px">
+        <label style="flex:1;display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;cursor:pointer;font-size:13px;font-weight:700" id="advTypeAdvLabel">
+          <input type="radio" name="advType" value="advance" checked style="accent-color:var(--danger)" onchange="document.getElementById('advTypeAdvLabel').style.borderColor='rgba(240,79,89,0.4)';document.getElementById('advTypePayLabel').style.borderColor='var(--border)'">
+          <i class="ti ti-arrow-up-right" style="color:var(--danger)" aria-hidden="true"></i>Advance Taken
+        </label>
+        <label style="flex:1;display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;cursor:pointer;font-size:13px;font-weight:700" id="advTypePayLabel">
+          <input type="radio" name="advType" value="payment" style="accent-color:var(--accent3)" onchange="document.getElementById('advTypePayLabel').style.borderColor='rgba(46,204,138,0.4)';document.getElementById('advTypeAdvLabel').style.borderColor='var(--border)'">
+          <i class="ti ti-arrow-down-right" style="color:var(--accent3)" aria-hidden="true"></i>Payment Made
+        </label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Amount (₹)</label>
+      <input type="number" class="form-control" id="advAmount" placeholder="e.g. 2000">
+    </div>
+    <div class="form-group">
+      <label>Reason / Note</label>
+      <input type="text" class="form-control" id="advNote" placeholder="e.g. Medical advance, Festival advance...">
+    </div>
+    <div class="form-group">
+      <label>Date</label>
+      <input type="date" class="form-control" id="advDate">
+    </div>
+    <button class="btn btn-primary full-btn" onclick="saveAdvancePayment()"><i class="ti ti-device-floppy" aria-hidden="true"></i>Save Record</button>
+  </div>
+</div>
+
+
+<!-- Admin Login Modal -->
+<div class="modal-bg" id="modal-admin-pin" style="align-items: center;">
+  <div class="modal" style="border-radius: 24px; padding: 32px 24px; max-width: 320px; border-bottom: 1px solid var(--border); box-shadow: 0 10px 40px rgba(0,0,0,0.5); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); opacity: 0; background: var(--surface); backdrop-filter: blur(16px);" id="admin-modal-box">
+    <div style="text-align: center; margin-bottom: 24px;">
+      <div style="width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, rgba(245, 197, 66, 0.2) 0%, rgba(217, 119, 6, 0.2) 100%); border: 1px solid rgba(245, 197, 66, 0.4); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; box-shadow: 0 0 20px rgba(245, 197, 66, 0.2);">
+        <i class="ti ti-lock-access" style="font-size: 32px; color: var(--accent)" aria-hidden="true"></i>
+      </div>
+      <div style="font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 6px;">Admin Access</div>
+      <div style="font-size: 13px; color: var(--text3);">Please enter your PIN to unlock features</div>
+    </div>
+    <div class="form-group">
+      <input type="password" class="form-control" id="adminPinInput" placeholder="••••" style="text-align: center; font-size: 28px; letter-spacing: 12px; padding: 16px; border-radius: 16px; background: rgba(0,0,0,0.3); border-color: rgba(255,255,255,0.1);">
+    </div>
+    <div style="display: flex; gap: 12px; margin-top: 28px;">
+      <button class="btn btn-outline" style="flex: 1; justify-content: center; padding: 14px; border-radius: 12px;" onclick="closeAdminModal()">Cancel</button>
+      <button class="btn btn-primary" style="flex: 1; justify-content: center; padding: 14px; border-radius: 12px; box-shadow: 0 4px 15px rgba(245, 197, 66, 0.3);" onclick="verifyAdminPin()"><i class="ti ti-unlock"></i> Unlock</button>
+    </div>
+  </div>
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+<script src="/js/app.js"></script>
+</body>
+</html>
