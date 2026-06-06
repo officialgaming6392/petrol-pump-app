@@ -1,0 +1,34 @@
+[
+  {
+    "id": "shift_1780718289234",
+    "date": "2026-06-06",
+    "shiftType": "Day",
+    "machine": "1",
+    "attendantId": "emp_01",
+    "attendantName": "Rahul Kumar",
+    "openPetrolMeter": 125430.55,
+    "closePetrolMeter": 125480,
+    "openDieselMeter": 98210.32,
+    "closeDieselMeter": 98310.32,
+    "petrolSoldQty": 49.45,
+    "petrolSoldAmount": 5085,
+    "dieselSoldQty": 100,
+    "dieselSoldAmount": 9618,
+    "totalFuelSale": 14703,
+    "onlineCollection": 5000,
+    "expectedCash": 9603,
+    "cashCollected": 9583,
+    "cashDifference": -20,
+    "udhaarGiven": 0,
+    "udhaarRecovered": 0,
+    "expenses": [
+      {
+        "desc": "Tea",
+        "amount": 100
+      }
+    ],
+    "totalExpenses": 100,
+    "netCollection": 9583,
+    "status": "Closed"
+  }
+]
