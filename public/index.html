@@ -16,11 +16,14 @@
     <div class="brand-icon">⛽</div>
     <div>
       <div class="brand-title">Darshan Filling Station</div>
-      <div class="brand-sub">Hadrukh, Jalaun</div>
+      <div class="brand-sub">Hadrukh, Jalaun· Management System</div>
     </div>
   </div>
   <div class="topbar-right">
     <div class="admin-pill" id="adminPill" onclick="toggleAdmin()">Staff Mode</div>
+    <div class="notif-btn admin-gate" id="settingsBtn" onclick="openSettings()" style="display:none; margin-right: 8px;">
+      <i class="ti ti-settings" aria-hidden="true"></i>
+    </div>
     <div class="notif-btn" onclick="showNotifs()">
       <i class="ti ti-bell" aria-hidden="true"></i>
       <div class="notif-dot" id="notifDot"></div>
@@ -539,6 +542,39 @@
   <div class="modal">
     <div class="modal-head"><div class="modal-title">Notifications</div><div class="close-btn" onclick="closeModal('modal-notifs')"><i class="ti ti-x" aria-hidden="true"></i></div></div>
     <div id="notifsList"></div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-bg" id="modal-settings">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">App Settings</div><div class="close-btn" onclick="closeModal('modal-settings')"><i class="ti ti-x" aria-hidden="true"></i></div></div>
+    
+    <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;margin-top:10px"><i class="ti ti-currency-rupee" aria-hidden="true"></i> Fuel Rates</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Petrol Rate (₹/L)</label>
+        <input type="number" class="form-control" id="setPetrolRate" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>Diesel Rate (₹/L)</label>
+        <input type="number" class="form-control" id="setDieselRate" step="0.01">
+      </div>
+    </div>
+
+    <div style="font-size:11px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;margin-top:10px"><i class="ti ti-building-factory-2" aria-hidden="true"></i> Tank Capacities</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Petrol Capacity (L)</label>
+        <input type="number" class="form-control" id="setPetrolCap">
+      </div>
+      <div class="form-group">
+        <label>Diesel Capacity (L)</label>
+        <input type="number" class="form-control" id="setDieselCap">
+      </div>
+    </div>
+    
+    <button class="btn btn-primary full-btn" onclick="saveSettings()"><i class="ti ti-device-floppy" aria-hidden="true"></i>Save Settings</button>
   </div>
 </div>
 
